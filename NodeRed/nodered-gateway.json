@@ -1,0 +1,898 @@
+[
+    {
+        "id": "4b483b83ec1fcb8d",
+        "type": "tab",
+        "label": "Data Processing",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bea29452da2e3fd9",
+        "type": "serial in",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Arduino Uno COM3:9600",
+        "serial": "55bc515d032955fc",
+        "x": 150,
+        "y": 200,
+        "wires": [
+            [
+                "a89ff9a294cbae54",
+                "b70eef37de94774d"
+            ]
+        ]
+    },
+    {
+        "id": "a89ff9a294cbae54",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugInputData",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "b70eef37de94774d",
+        "type": "json",
+        "z": "4b483b83ec1fcb8d",
+        "name": "convertToJson",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 560,
+        "y": 200,
+        "wires": [
+            [
+                "5021fc090eee6119",
+                "fcfdfee731439973"
+            ]
+        ]
+    },
+    {
+        "id": "5021fc090eee6119",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugInputDataJson",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "fcfdfee731439973",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "addTimestampAndSendFlag",
+        "func": "msg.payload = { data: msg.payload, timestamp: Date.now(), sent: 0 };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run when the\n// node is being stopped or re-deployed.\n",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 200,
+        "wires": [
+            [
+                "48fc4481362edf22",
+                "b2fdbf661f1f4d78"
+            ]
+        ]
+    },
+    {
+        "id": "48fc4481362edf22",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugAdjstInput",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1100,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "b2fdbf661f1f4d78",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "insertSensorData",
+        "collection": "sensordata",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1110,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "cf0f9d203f556876",
+        "type": "inject",
+        "z": "4b483b83ec1fcb8d",
+        "name": "triggerPrepareData",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "*/5 0-23 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 440,
+        "wires": [
+            [
+                "8f16922fbf87cbc5"
+            ]
+        ]
+    },
+    {
+        "id": "f4fd0a9a1ca32ec4",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugFilteredData",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "f426ac83c7efaa53",
+        "type": "mongodb in",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "filterSensorData",
+        "collection": "sensordata",
+        "operation": "aggregate",
+        "x": 660,
+        "y": 440,
+        "wires": [
+            [
+                "f4fd0a9a1ca32ec4",
+                "9733b4cda21fde8f",
+                "dc9450777d42160e"
+            ]
+        ]
+    },
+    {
+        "id": "8f16922fbf87cbc5",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryLastRecord",
+        "func": "var msgdata = {};\n\nmsgdata.payload = [\n    { $match: { 'payload.sent': 0 } },\n    {$sort: { 'payload.timestamp': -1 } },\n    { $limit: 1 }\n];\nreturn msgdata;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 440,
+        "wires": [
+            [
+                "f426ac83c7efaa53"
+            ]
+        ]
+    },
+    {
+        "id": "9733b4cda21fde8f",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "prepareSensorDataToSend",
+        "collection": "sensordata.tosend",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1020,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "e6f471f6648a5b60",
+        "type": "http request",
+        "z": "4b483b83ec1fcb8d",
+        "name": "healthCheck",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 370,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b6b2e747555a867e",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "serverHealthCheckNOK",
+        "collection": "serveravailability",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 870,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "109aa247d97cd220",
+        "type": "switch",
+        "z": "4b483b83ec1fcb8d",
+        "name": "",
+        "property": "payload.statusCode",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "200",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 570,
+        "y": 740,
+        "wires": [
+            [
+                "b6b2e747555a867e"
+            ],
+            [
+                "6716f04f7a0f9ea7",
+                "ca23bf10e86e56e9"
+            ]
+        ]
+    },
+    {
+        "id": "6716f04f7a0f9ea7",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "serverHealthCheckOK",
+        "collection": "serveravailability",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "store",
+        "x": 860,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "e041973c35288aaa",
+        "type": "comment",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Load data from Arduino",
+        "info": "",
+        "x": 120,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "2a5538883d3b817f",
+        "type": "comment",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Filter and prepare data that will be send",
+        "info": "separate flow?",
+        "x": 170,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "159340360c2d66e3",
+        "type": "inject",
+        "z": "4b483b83ec1fcb8d",
+        "name": "triggerSentData",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "*/5 0-23 * * *",
+        "once": true,
+        "onceDelay": "60",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 740,
+        "wires": [
+            [
+                "07c7a2cad96d30d0"
+            ]
+        ]
+    },
+    {
+        "id": "59f25b1d9bf97282",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugHealthCheck",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 610,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "ad35976f3ecb5e03",
+        "type": "comment",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Send data to cloud",
+        "info": "separate flow?",
+        "x": 110,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "e3bc06e76d7d32e9",
+        "type": "switch",
+        "z": "4b483b83ec1fcb8d",
+        "name": "loop",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "empty"
+            },
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1310,
+        "y": 840,
+        "wires": [
+            [
+                "a2c33c9c2f9c4bbe"
+            ],
+            [
+                "7160f58cc5c755e0",
+                "34b32b539631d62a",
+                "ca23bf10e86e56e9"
+            ]
+        ]
+    },
+    {
+        "id": "ad6b9f653bf4f515",
+        "type": "http request",
+        "z": "4b483b83ec1fcb8d",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1510,
+        "y": 800,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ca23bf10e86e56e9",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryRecordToSend",
+        "func": "var msgdata = {};\n\nmsgdata.payload = [\n    { $match: { 'payload.sent': 0 } },\n    { $sort: { 'payload.timestamp': 1 } },\n    { $limit: 1 }\n];\nreturn msgdata;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 900,
+        "wires": [
+            [
+                "5cd1f10af5f1a33d"
+            ]
+        ]
+    },
+    {
+        "id": "5cd1f10af5f1a33d",
+        "type": "mongodb in",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "filterRecordToSend",
+        "collection": "sensordata.tosend",
+        "operation": "aggregate",
+        "x": 1110,
+        "y": 900,
+        "wires": [
+            [
+                "e3bc06e76d7d32e9"
+            ]
+        ]
+    },
+    {
+        "id": "46046ca3059f2320",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "markRecordAsSent",
+        "collection": "sensordata.tosend",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "update",
+        "x": 1750,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "a2c33c9c2f9c4bbe",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "batchFinished",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1520,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "ab8cdec02940de91",
+        "type": "catch",
+        "z": "4b483b83ec1fcb8d",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 80,
+        "y": 1400,
+        "wires": [
+            [
+                "4f2dc04a2873a853"
+            ]
+        ]
+    },
+    {
+        "id": "7e5572c13162f806",
+        "type": "comment",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Retention of data",
+        "info": "",
+        "x": 100,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "44b9710f3a938d4a",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "markDataAsProcessed",
+        "collection": "sensordata",
+        "payonly": false,
+        "upsert": false,
+        "multi": true,
+        "operation": "update",
+        "x": 1260,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "07c7a2cad96d30d0",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "dummyHealthCheck",
+        "func": "msg.payload = { data: msg.payload, statusCode: 300 };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 680,
+        "wires": [
+            [
+                "109aa247d97cd220",
+                "59f25b1d9bf97282"
+            ]
+        ]
+    },
+    {
+        "id": "7160f58cc5c755e0",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "sentRecord",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload[0]._id",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1510,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "34b32b539631d62a",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryUpdateData",
+        "func": "msg.query = {\"_id\": msg.payload[0]._id}\n\nmsg.payload = { $set: { 'payload.sent': 1 } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1530,
+        "y": 920,
+        "wires": [
+            [
+                "46046ca3059f2320"
+            ]
+        ]
+    },
+    {
+        "id": "d34e3e843703e34a",
+        "type": "comment",
+        "z": "4b483b83ec1fcb8d",
+        "name": "Error handling",
+        "info": "",
+        "x": 90,
+        "y": 1340,
+        "wires": []
+    },
+    {
+        "id": "68a2f6d26c9944d2",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "saveErrors",
+        "collection": "errors",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 490,
+        "y": 1400,
+        "wires": []
+    },
+    {
+        "id": "c6090384cb261283",
+        "type": "inject",
+        "z": "4b483b83ec1fcb8d",
+        "name": "triggerDeleteData",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 12 * * *",
+        "once": false,
+        "onceDelay": "60",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 1120,
+        "wires": [
+            [
+                "f597cde2acd1a58b",
+                "340f3f87259a46f9",
+                "5708288de642e181",
+                "5427f1abbff3eb51"
+            ]
+        ]
+    },
+    {
+        "id": "dc9450777d42160e",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryUpdateData",
+        "func": "msg.query = {\n    \"payload.timestamp\": { $lte:msg.payload[0].payload.timestamp}}\n\nmsg.payload = { $set: { 'payload.sent': 1 } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 990,
+        "y": 520,
+        "wires": [
+            [
+                "44b9710f3a938d4a"
+            ]
+        ]
+    },
+    {
+        "id": "f597cde2acd1a58b",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "querySensorDataToRemove",
+        "func": "var param_deldate = (1000 * 60 * 60 * 24 * 7);\n\nmsg.collection = 'sensordata';\nmsg.payload = { \"payload.timestamp\": { $lt: msg.payload - param_deldate } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1040,
+        "wires": [
+            [
+                "724d07c63bd81fed",
+                "f9f1d086e4c55e0b"
+            ]
+        ]
+    },
+    {
+        "id": "340f3f87259a46f9",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "querySensoreDataToSendToRemove",
+        "func": "var param_deldate = (1000 * 60 * 60 * 24 * 30);\n\nmsg.collection = 'sensordata.tosend';\nmsg.payload = { \"payload.timestamp\": { $lt: msg.payload - param_deldate } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1120,
+        "wires": [
+            [
+                "f9f1d086e4c55e0b",
+                "724d07c63bd81fed"
+            ]
+        ]
+    },
+    {
+        "id": "5708288de642e181",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryServerAvailabilityToRemove",
+        "func": "var param_deldate = (1000 * 60 * 60 * 24 * 30);\n\nmsg.collection = 'serveravailability';\nmsg.payload = { \"payload.data\": { $lt: msg.payload - param_deldate } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 1200,
+        "wires": [
+            [
+                "724d07c63bd81fed",
+                "f9f1d086e4c55e0b"
+            ]
+        ]
+    },
+    {
+        "id": "763cfb023c273f0f",
+        "type": "debug",
+        "z": "4b483b83ec1fcb8d",
+        "name": "debugToDel",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "724d07c63bd81fed",
+        "type": "mongodb in",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "debugRetrieveData",
+        "collection": "",
+        "operation": "find",
+        "x": 930,
+        "y": 1060,
+        "wires": [
+            [
+                "763cfb023c273f0f"
+            ]
+        ]
+    },
+    {
+        "id": "f9f1d086e4c55e0b",
+        "type": "mongodb out",
+        "z": "4b483b83ec1fcb8d",
+        "mongodb": "d120f7494e21d791",
+        "name": "retentionData",
+        "collection": "",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "delete",
+        "x": 920,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "23399cba9a559c7f",
+        "type": "inject",
+        "z": "4b483b83ec1fcb8d",
+        "d": true,
+        "name": "injectDummyData",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "e65e193a8fe6b695"
+            ]
+        ]
+    },
+    {
+        "id": "e65e193a8fe6b695",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "generateDummyData",
+        "func": "const startingtemp = 20;\nconst startinghum = 50;\nconst location = \"Brussels\";\nconst sensor = \"DummyDataZuza\";\n\nvar spread = 0.5\nvar randomtemp = Math.random() * ((startingtemp + spread)\n    - (startingtemp - spread) + 1) + (startingtemp - spread);\nvar randomhum = Math.random() * ((startinghum + spread)\n    - (startinghum - spread) + 1) + (startinghum - spread);\nvar humidity = Math.round((randomhum + Number.EPSILON) * 10) / 10;\nvar temperature = Math.round((randomtemp + Number.EPSILON) * 10) / 10;\n\nmsg.payload = \"{\\\"Sensor\\\":\\\"\" + sensor + \"\\\",\\\"Location\\\":\\\"\" + location + \"\\\",\\\"Temperature\\\":\" + temperature + \",\\\"Humidity\\\":\" + humidity + \"}\"\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 120,
+        "wires": [
+            [
+                "a89ff9a294cbae54",
+                "b70eef37de94774d"
+            ]
+        ]
+    },
+    {
+        "id": "4f2dc04a2873a853",
+        "type": "change",
+        "z": "4b483b83ec1fcb8d",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "",
+                "tot": "date"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 280,
+        "y": 1400,
+        "wires": [
+            [
+                "68a2f6d26c9944d2"
+            ]
+        ]
+    },
+    {
+        "id": "5427f1abbff3eb51",
+        "type": "function",
+        "z": "4b483b83ec1fcb8d",
+        "name": "queryErrorsToRemove",
+        "func": "var param_deldate = (1000 * 60 * 60 * 24 * 30);\n\nmsg.collection = 'errors';\nmsg.payload = { \"payload\": { $lt: msg.payload - param_deldate } };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 1280,
+        "wires": [
+            [
+                "724d07c63bd81fed",
+                "f9f1d086e4c55e0b"
+            ]
+        ]
+    },
+    {
+        "id": "55bc515d032955fc",
+        "type": "serial-port",
+        "serialport": "COM3",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "d120f7494e21d791",
+        "type": "mongodb",
+        "hostname": "localhost",
+        "topology": "direct",
+        "connectOptions": "",
+        "port": "27017",
+        "db": "meteostation",
+        "name": ""
+    }
+]
